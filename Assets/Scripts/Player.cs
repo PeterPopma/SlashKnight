@@ -36,18 +36,20 @@ public class Player : MonoBehaviour
             if (slashTimeLeft <= 0)
             {
                 isSlashing = false;
-                animator.SetLayerWeight(LAYER_SLASH, 0f);
-                animator.SetLayerWeight(LAYER_SLASH, Mathf.Lerp(animator.GetLayerWeight(LAYER_SLASH), 0f, Time.deltaTime * 50f));
             }
         }
-        else if (starterAssetsInputs.slash)
+        if (starterAssetsInputs.slash)
         {
             isSlashing = true;
             checkedObjectsToSmash = false;
             starterAssetsInputs.slash = false;
-            slashTimeLeft = 1.2f;
+            slashTimeLeft = 0.6f;
             animator.Play("SwordSlash", LAYER_SLASH, 0f);
-            animator.SetLayerWeight(LAYER_SLASH, Mathf.Lerp(animator.GetLayerWeight(LAYER_SLASH), 1f, Time.deltaTime * 50f));
+            animator.SetLayerWeight(LAYER_SLASH, 1f);
+        }
+        if (!isSlashing)
+        {
+            animator.SetLayerWeight(LAYER_SLASH, Mathf.Lerp(animator.GetLayerWeight(LAYER_SLASH), 0f, Time.deltaTime * 5f));
         }
     }
 
@@ -58,11 +60,6 @@ public class Player : MonoBehaviour
         foreach (Collider collider in colliders)
         {
             ShatterGameObjects shatter = collider.gameObject.GetComponent<ShatterGameObjects>();
-            if (shatter == null && collider.transform.parent!=null)
-            {
-                shatter = collider.transform.parent.gameObject.GetComponent<ShatterGameObjects>();
-            }
-
             if (shatter!=null)
             {
                 shatter.ShatterObject();

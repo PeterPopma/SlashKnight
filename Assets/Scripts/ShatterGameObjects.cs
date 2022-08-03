@@ -8,15 +8,14 @@ using UnityEngine;
 // Read/Write must be allowed on meshes.
 public class ShatterGameObjects : MonoBehaviour
 {
-//    public float delay = 3.0f;
-
-    // Update is called once per frame
-    void Update()
-    {
-//        delay -= Time.deltaTime;
-//        if (delay < 0f)
-//            CreateShatterObjects(transform);
-    }
+    [Tooltip("Delay before the meshes are split (usually 0)")]
+    [SerializeField] private float shatterDelay = 0f;
+    [Tooltip("Delay before the exploded parts are removed")]
+    [SerializeField] private float cleanupDelay = 6f;
+    [Tooltip("Depth of shattering. More means more pieces.")] 
+    [SerializeField] private int depth = 3;
+    [Tooltip("Material used on broken faces of meshes. Default is the object's own material")] 
+    [SerializeField] private Material crossSectionMaterial;
 
     public void ShatterObject()
     {
@@ -25,24 +24,41 @@ public class ShatterGameObjects : MonoBehaviour
 
     public void ShatterObject(Transform root)
     {
-        foreach(Transform transform in root)
+        if (root.childCount == 0)
         {
-            BoxCollider boxCollider = transform.gameObject.GetComponent<BoxCollider>();
+            BoxCollider boxCollider = root.gameObject.GetComponent<BoxCollider>();
             if (boxCollider == null)
             {
-                transform.gameObject.AddComponent(typeof(BoxCollider));
+                root.gameObject.AddComponent(typeof(BoxCollider));
             }
-            Rigidbody rigidbody = transform.gameObject.GetComponent<Rigidbody>();
-            if (rigidbody==null)
+            Rigidbody rigidbody = root.gameObject.GetComponent<Rigidbody>();
+            if (rigidbody == null)
             {
-                transform.gameObject.AddComponent(typeof(Rigidbody));
+                root.gameObject.AddComponent(typeof(Rigidbody));
+                rigidbody = root.gameObject.GetComponent<Rigidbody>();
             }
-     //       rigidbody.AddForce(new Vector3(Random.value, Random.value, Random.value)*5, ForceMode.Impulse);
-     //       rigidbody.AddTorque(new Vector3(Random.Range(-500f, 500f), Random.Range(-500f, 500f), Random.Range(-500f, 500f)), ForceMode.VelocityChange); 
-            transform.parent = transform.parent.parent;
-            transform.gameObject.AddComponent(typeof(ShatterMesh));
-            ShatterObject(transform);
+            rigidbody.AddForce(Vector3.up * 4f, ForceMode.VelocityChange);
+            rigidbody.AddTorque(new Vector3(Random.Range(-500f, 500f), Random.Range(-500f, 500f), Random.Range(-500f, 500f)), ForceMode.VelocityChange);
+            root.parent = transform.parent;
+            root.gameObject.AddComponent(typeof(ShatterMesh));
+            root.gameObject.GetComponent<ShatterMesh>().CrossSectionMaterial = crossSectionMaterial;
+            root.gameObject.GetComponent<ShatterMesh>().ShatterDelay = shatterDelay;
+            root.gameObject.GetComponent<ShatterMesh>().CleanupDelay = cleanupDelay;
+            root.gameObject.GetComponent<ShatterMesh>().Depth = depth;
         }
-        Destroy(gameObject);
+        else
+        {
+            List<Transform> children = new List<Transform>();
+            // first copy the children to a separate list, because they will be modified in the foreach loop.
+            foreach (Transform transform in root)
+            {
+                children.Add(transform);
+            }
+            foreach (Transform transform in children)
+            {
+                ShatterObject(transform);
+            }
+            Destroy(root.gameObject);
+        }
     }
 }
