@@ -2,6 +2,7 @@ using StarterAssets;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.VFX;
 
 public class Player : MonoBehaviour
 {
@@ -12,6 +13,9 @@ public class Player : MonoBehaviour
     private float slashTimeLeft;
     private bool isSlashing;
     private bool checkedObjectsToSmash;
+    [SerializeField] private VisualEffect vfxSlash;
+    [SerializeField] private AudioSource soundSlash;
+    [SerializeField] private AudioSource soundHit;
 
     public bool IsSlashing { get => isSlashing; set => isSlashing = value; }
 
@@ -19,6 +23,7 @@ public class Player : MonoBehaviour
     {
         swordImpactPosition = GameObject.Find("SwordImpactPosition");
         starterAssetsInputs = GetComponent<StarterAssetsInputs>();
+        GetComponent<VisualEffect>();
         animator = GetComponent<Animator>();
     }
 
@@ -40,6 +45,8 @@ public class Player : MonoBehaviour
         }
         if (starterAssetsInputs.slash)
         {
+            vfxSlash.Play();
+            soundSlash.Play();
             isSlashing = true;
             checkedObjectsToSmash = false;
             starterAssetsInputs.slash = false;
@@ -62,6 +69,8 @@ public class Player : MonoBehaviour
             ShatterGameObjects shatter = collider.gameObject.GetComponent<ShatterGameObjects>();
             if (shatter!=null)
             {
+                CameraShake.Instance.ShakeCamera(10, 12f);
+                soundHit.Play();
                 shatter.ShatterObject();
             }
         }
