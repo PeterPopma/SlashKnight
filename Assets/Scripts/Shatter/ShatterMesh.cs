@@ -5,20 +5,28 @@ using EzySlice;
 
 public class ShatterMesh : MonoBehaviour {
 
+    private float explosionForce = 15f;
     private float shatterDelay = 0f;
     private float cleanupDelay = 6f;
     private int depth = 3;
     private Material crossSectionMaterial;
+    private Transform pfSmoke;
 
     public Material CrossSectionMaterial { get => crossSectionMaterial; set => crossSectionMaterial = value; }
     public int Depth { get => depth; set => depth = value; }
     public float ShatterDelay { get => shatterDelay; set => shatterDelay = value; }
     public float CleanupDelay { get => cleanupDelay; set => cleanupDelay = value; }
+    public Transform PfSmoke { get => pfSmoke; set => pfSmoke = value; }
 
     public GameObject[] Shatter(GameObject objectToShatter) {
         if (crossSectionMaterial == null)
         {
             Renderer renderer = objectToShatter.GetComponent<Renderer>();
+            if (renderer == null)
+            {
+                // not a renderable object, so return
+                return null;
+            }
             crossSectionMaterial = renderer.material;
         }
 
@@ -76,8 +84,15 @@ public class ShatterMesh : MonoBehaviour {
                 shatteredObject.AddComponent(typeof(DeleteAfterDelay));
                 shatteredObject.GetComponent<DeleteAfterDelay>().delay = cleanupDelay;
                 Rigidbody rigidbody = shatteredObject.AddComponent<Rigidbody>();
-                rigidbody.AddForce(new Vector3(Random.value, Random.value, Random.value)*15, ForceMode.Impulse);
-                rigidbody.AddTorque(new Vector3(Random.Range(-500f, 500f), Random.Range(-500f, 500f), Random.Range(-500f, 500f)), ForceMode.VelocityChange);
+                if (explosionForce > 0)
+                {
+                    rigidbody.AddForce(new Vector3(Random.value, Random.value, Random.value) * explosionForce, ForceMode.VelocityChange);
+                    rigidbody.AddTorque(new Vector3(Random.Range(-500f, 500f), Random.Range(-500f, 500f), Random.Range(-500f, 500f)), ForceMode.VelocityChange);
+                }
+                if (pfSmoke != null)
+                {
+                    Instantiate(pfSmoke, transform.position, Quaternion.LookRotation(transform.position, Vector3.up));
+                }
                 if (depthLeft > 0)
                 {
                     PerformShatter(shatteredObject, depthLeft);

@@ -18,6 +18,8 @@ public class ShatterGameObjects : MonoBehaviour
     [SerializeField] private Material crossSectionMaterial;
     [Tooltip("Smoke effect")]
     [SerializeField] private Transform pfSmoke;
+    [Tooltip("How much the object will scatter")]
+    [SerializeField] private float explosionForce = 15f;
 
     public void ShatterObject()
     {
@@ -43,14 +45,19 @@ public class ShatterGameObjects : MonoBehaviour
                 root.gameObject.AddComponent(typeof(Rigidbody));
                 rigidbody = root.gameObject.GetComponent<Rigidbody>();
             }
-            rigidbody.AddForce(Vector3.up * 4f, ForceMode.VelocityChange);
-            rigidbody.AddTorque(new Vector3(Random.Range(-500f, 500f), Random.Range(-500f, 500f), Random.Range(-500f, 500f)), ForceMode.VelocityChange);
+            if (explosionForce > 0)
+            {
+                rigidbody.AddForce(new Vector3(Random.value, Random.value, Random.value) * explosionForce, ForceMode.VelocityChange);
+                rigidbody.AddRelativeTorque(new Vector3(Random.Range(-500f, 500f), Random.Range(-500f, 500f), Random.Range(-500f, 500f)), ForceMode.VelocityChange);
+            }
+            //rigidbody.AddForce(Vector3.up, ForceMode.VelocityChange);
             root.parent = transform.parent;
             root.gameObject.AddComponent(typeof(ShatterMesh));
             root.gameObject.GetComponent<ShatterMesh>().CrossSectionMaterial = crossSectionMaterial;
             root.gameObject.GetComponent<ShatterMesh>().ShatterDelay = shatterDelay;
             root.gameObject.GetComponent<ShatterMesh>().CleanupDelay = cleanupDelay;
-            root.gameObject.GetComponent<ShatterMesh>().Depth = depth;
+            root.gameObject.GetComponent<ShatterMesh>().Depth = depth; 
+            root.gameObject.GetComponent<ShatterMesh>().PfSmoke = pfSmoke;
         }
         else
         {
